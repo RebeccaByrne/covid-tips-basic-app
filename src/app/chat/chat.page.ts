@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ChatMessage, mockMessageGenerator, ChatResponseOption } from './message.model';
+import { ChatMessage, mockMessageGenerator, ChatResponseOption, ResponseCustomAction } from './message.model';
 import { AnimationOptions } from 'ngx-lottie';
 
 @Component({
@@ -13,13 +13,18 @@ export class ChatPage implements OnInit {
   responseOptions: ChatResponseOption[] = [];
 
   botAnimOptions: AnimationOptions = {
-    path: '/assets/lottie-animations/Character_Walk_In_2nd_passv6.json',
+    loop: false,
+    path: '/assets/lottie-animations/Walk_In_Entrance_Pass_v2.json',
   };
 
   constructor() { }
 
   ngOnInit() {
     mockMessageGenerator((msg) => {
+      if (msg.sender === "user" && msg.responseOptions && 
+        msg.responseOptions[0] && msg.responseOptions[0].customAction) {
+          this.doCustomResponseAction(msg.responseOptions[0].customAction);
+      }
       this.onReceiveMessage(msg);
     });
   }
@@ -28,10 +33,24 @@ export class ChatPage implements OnInit {
     msg.dateSent = new Date();
     msg.dateReceived = new Date();
     this.messages.push(msg);
-    if (msg.responseOptions) {
+    if (msg.responseOptions && msg.sender !== "user") {
       this.responseOptions = msg.responseOptions;
     } else {
       this.responseOptions = [];
+    }
+  }
+
+  doCustomResponseAction(action: ResponseCustomAction) {
+    if (action === "bot-leave") {
+      this.botAnimOptions = {
+        loop: false,
+        path: '/assets/lottie-animations/Walk_Out_Exit_Pass_v2.json'
+      };
+    } else if (action === "bot-return") {
+      this.botAnimOptions = {
+        loop: false,
+        path: '/assets/lottie-animations/Run_In_Entrance_Pass_v2.json'
+      };
     }
   }
 
